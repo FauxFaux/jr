@@ -145,14 +145,12 @@ pub fn v_minus(x: Option<&Word>, y: &Word) -> Result<Word, JError> {
 pub fn v_times(x: Option<&Word>, y: &Word) -> Result<Word, JError> {
     let x = x.ok_or_else(|| JError::custom("monadic * not implemented yet"))?;
     match (x, y) {
-        (Word::Noun(x), Word::Noun(y)) => match promotion(x, y)? {
-            (IntArray { a: x }, IntArray { a: y }) => Ok(Word::Noun(IntArray { a: x * y })),
-            (ExtIntArray { a: x }, ExtIntArray { a: y }) => {
-                Ok(Word::Noun(ExtIntArray { a: x * y }))
-            }
-            (FloatArray { a: x }, FloatArray { a: y }) => Ok(Word::Noun(FloatArray { a: x * y })),
-            _ => Err(JError::DomainError),
-        },
+        (Word::Noun(x), Word::Noun(y)) => Ok(Word::Noun(match promotion(x, y)? {
+            (IntArray { a: x }, IntArray { a: y }) => IntArray { a: x * y },
+            (ExtIntArray { a: x }, ExtIntArray { a: y }) => ExtIntArray { a: x * y },
+            (FloatArray { a: x }, FloatArray { a: y }) => FloatArray { a: x * y },
+            _ => return Err(JError::DomainError),
+        })),
         _ => Err(JError::custom("plus not supported for these types yet")),
     }
 }
